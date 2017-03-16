@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Buddies App</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.js"></script>
+
+
+</head>
+<body ng-app="studentsApp">
+<div class="container">
+    <div ng-controller="studentsController">
+
+        <h1>Buddies List</h1>
+        <button class="btn btn-success" ng-click="addStudent()">Add a Buddy</button>
+        <br><br>
+     Search:
+   
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <td><strong>UserName</strong></td>
+                 <td><strong>First Name</strong></td>
+                <td><strong>Last Name</strong></td>
+                 <td><strong>Status</strong></td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="student in students">
+                <td> {{student.username}}</td>
+                <td>{{student.fname}}</td>
+                <td> {{student.lname}}</td>
+                <td>{{student.status}}</td>
+
+                <td><button class="btn btn-info" ng-click="update($index)">Update</button></td>
+                <td><button class="btn btn-danger" ng-click="delete($index)">Delete</button></td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+    <script src="app.js"></script>
+    <script src="services/BuddiesFactory.js"></script>
+    </body>
+</html>
