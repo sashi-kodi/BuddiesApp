@@ -1,4 +1,4 @@
-var studentsApp = angular.module('studentsApp', ['ui.bootstrap']);
+var studentsApp = angular.module('studentsApp', ['ui.bootstrap','ui.grid']);
     studentsApp.controller('StudentModalUpdateController', function($scope,$uibModalInstance,student){
         $scope.title ="Update";
         $scope.stud = student;
@@ -44,10 +44,37 @@ var studentsApp = angular.module('studentsApp', ['ui.bootstrap']);
 //        $scope.students = [{username:'isha',fname:'sashi', lname:'kodi', status:'available',bdate:new Date('1981-11-19'), bio:'i like chatting', email:'sashikv@yahoo.com'},
 //            {username:'shake',fname:'sekhar', lname:'kodi', status:'busy', email:'sekhar.sh@gmail.com',bdate:new Date('1979-02-28'), bio:'likes to do research'}];
         
+//        $scope.reverse=false;
+//        $scope.sortorder="username";
+//        $scope.sort= function(str){
+//            if($scope.sortorder=== str){
+//                $scope.reverse=!$scope.reverse;
+//                
+//            }
+//            else{
+//                $scope.sortorder=str;
+//            }
+//        }
+        
+        $scope.gridoptions={
+            enableSorting: true,
+            enableFiltering:true,
+            columnDefs:[{name:'User Name', field:'username'},
+                        {name:'First Name', field:'fname'},
+                        {name:'Last Name', field:'lname'},
+                        {name:'Status', field:'status'},
+                        {name:'Edit', cellTemplate: './partials/editButton.html', width: 50, enableSorting: false, enableFiltering:false},
+                         {name:'Delete', cellTemplate: './partials/deleteButton.html', width: 50, enableSorting:false, enableFiltering:false }
+                       ]
+        };
+        
+        
         BuddiesFactory.getAllContacts()
         .then(
     function(res){
         $scope.students= res.data;
+         $scope.gridoptions.data = $scope.students;
+       
         
     },
         function(data,status,header,config){
@@ -55,6 +82,8 @@ var studentsApp = angular.module('studentsApp', ['ui.bootstrap']);
             console.log("An error occured while retrieving  buddies list from the server");
         }
     );
+        
+         $scope.gridoptions.data = $scope.students;
         
         $scope.addStudent = function(){
             var modalInstance = $uibModal.open({
@@ -77,22 +106,23 @@ var studentsApp = angular.module('studentsApp', ['ui.bootstrap']);
             });
         };
 
-        $scope.delete = function(index){
-
+        $scope.delete = function(row){
+            console.log(row.entity);
             var modalInstance = $uibModal.open({
                 templateUrl:'partials/deleteBuddy.html',
                 controller: 'StudentModalDeleteController',
                 resolve:{
                     studentname : function(){
-                        return $scope.students[index].username;
+                        return row.entity.username;
                     }
                 }
             });
             modalInstance.result.then(function(studentname){
                 
-                BuddiesFactory.deleteContact($scope.students[index].username)
+                BuddiesFactory.deleteContact(row.entity.username)
                 .then(function(res){
-                     $scope.students.splice(index,1);
+                    var position = search(row.entity.username);
+                     $scope.students.splice(position,1);
                     
                 }, function(data,status,header,config){
                     console.log("Error occured while trying to delete the record from database ");
@@ -104,25 +134,41 @@ var studentsApp = angular.module('studentsApp', ['ui.bootstrap']);
                 console.log("the user cancelled the delete operation");
             });
         };
-
-        $scope.update = function(index){
-           var student1= angular.copy($scope.students[index]);
-            console.log("inside update method");
-            console.log(student1);
+        function search(username){
+            var pos=-1;
+            for (var i=0;i<$scope.students.length;i++){
+                if($scope.students[i].username===username) {
+                    pos=i;
+                    break;
+                }
+            }
+            return pos;
+            
+        }
+        $scope.update = function(row){
+            console.log(row.entity);
+       
+           var position = search(row.entity.username);
+           
+          var buddy=angular.copy($scope.students[position]);
+           
+            
             var modalInstance = $uibModal.open({
                 templateUrl:'./partials/createBuddy.html',
                 controller:'StudentModalUpdateController',
                 resolve:{
                     student : function(){
-                        return student1;
+                        return buddy;
                     }
                 }
             });
 
-            modalInstance.result.then(function(newstud){
-                BuddiesFactory.updateContact(newstud)
+            modalInstance.result.then(function(newbuddy){
+                BuddiesFactory.updateContact(newbuddy)
               .then(function(res){
-                     $scope.students[index]=angular.copy(newstud);
+                    // $scope.students[index]=angular.copy(newstud);
+                    var position = $scope.students.indexOf(row.entity.username);
+                    $scope.students[position] = angular.copy(newbuddy);
                     
                 }, function(data,status,header,config){
                     console.log("Error occured while trying to update the record at database ");
